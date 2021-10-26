@@ -1,0 +1,49 @@
+Exercise 1: Make a Function (25 points)
+In this exercise, you’ll be making a function and fortifying it. The function need not be complicated. The function need not be “serious”, but shouldn’t be nonsense.
+
+Function Ideas
+
+Did you repeat any code for a data analysis in STAT 545A? If so, consider making a function for this action.
+Consider bundling a specific group_by() %>% summarise() workflow.
+Write a wrapper around an existing function.
+For example, perhaps accepting a narrower range of inputs (like not allowing logical vectors), or providing a different output.
+A specific example: my rqdist() function is a wrapper around quantreg::rq(), narrowing its functionality.
+It’s usually better to narrow a function’s focus than to broaden, so that a function doesn’t end up doing too much.
+Make a function extracting parts of an "lm" object that you can’t easily access (broom aside), or measuring the “difference” between a linear and quadratic fit.
+Make a special plot that you’d want to repeat when exploring your data.
+…
+Guidelines
+
+Your function should not rely on anything from your working environment.
+Your function should not rely on “magic numbers” – pre-selected numbers (or options) that appear inside the function that can’t be accessed by a user of the function.
+For example, maybe quantile(x, type = 1, ...) appears in your function. The choice of 1 is arbitrary – unless you’re making a function like quantile_type_1().
+Input should not take a rigid form. An example that’s too rigid is a data frame that’s expected to have special types of columns.
+The output is consistent – for example, always gives a list. An example of inconsistent output: sapply(1:3, seq_len) gives a list, and sapply(1:3, sqrt) gives an (atomic) vector.
+Your function includes appropriate arguments. (Do you handle NA’s appropriately? Are you using the ellipsis properly? etc.)
+Exercise 2: Document your Function (20 points)
+In the same code chunk where you made your function, document the function using roxygen2 tags. Be sure to include:
+
+Title.
+Function description: In 1-2 brief sentences, describe what the function does.
+Document each argument with the @param tag, making sure to justify why you named the parameter as you did.
+(Justification for naming is not often needed, but we want to hear your reasoning.)
+What the function returns, using the @return tag.
+Exercise 3: Include examples (15 points)
+Demonstrate the usage of your function with a few examples. Use one or more new code chunks, describing what you’re doing.
+
+Note: If you want to deliberately show an error, you can use error = TRUE in your code chunk option.
+
+Exercise 4: Test the Function (25 points)
+Running examples is a good way of checking by-eye whether your function is working as expected. But, having a formal “yes or no” check is useful when you move on to other parts of your analysis.
+
+Write formal tests for your function. You should use at least three non-redundant uses of an expect_() function from the testthat package, and they should be contained in a test_that() function (or more than one). They should all pass.
+
+Example of non-redundant inputs:
+
+Vector with no NA’s
+Vector that has NA’s
+Vector of a different type (if relevant)
+Vector of length 0, like numeric(0).
+Example of redundant inputs:
+
+Providing a different number (unless one of these numbers have some significance, like a limit point – just tell us if that’s the case)
