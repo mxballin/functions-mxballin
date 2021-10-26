@@ -1,4 +1,4 @@
-Exercise 1: Make a Function (25 points)
+# Exercise 1: Make a Function (25 points)
 In this exercise, you’ll be making a function and fortifying it. The function need not be complicated. The function need not be “serious”, but shouldn’t be nonsense.
 
 Function Ideas
@@ -20,7 +20,8 @@ For example, maybe quantile(x, type = 1, ...) appears in your function. The choi
 Input should not take a rigid form. An example that’s too rigid is a data frame that’s expected to have special types of columns.
 The output is consistent – for example, always gives a list. An example of inconsistent output: sapply(1:3, seq_len) gives a list, and sapply(1:3, sqrt) gives an (atomic) vector.
 Your function includes appropriate arguments. (Do you handle NA’s appropriately? Are you using the ellipsis properly? etc.)
-Exercise 2: Document your Function (20 points)
+
+# Exercise 2: Document your Function (20 points)
 In the same code chunk where you made your function, document the function using roxygen2 tags. Be sure to include:
 
 Title.
@@ -28,12 +29,12 @@ Function description: In 1-2 brief sentences, describe what the function does.
 Document each argument with the @param tag, making sure to justify why you named the parameter as you did.
 (Justification for naming is not often needed, but we want to hear your reasoning.)
 What the function returns, using the @return tag.
-Exercise 3: Include examples (15 points)
+# Exercise 3: Include examples (15 points)
 Demonstrate the usage of your function with a few examples. Use one or more new code chunks, describing what you’re doing.
 
 Note: If you want to deliberately show an error, you can use error = TRUE in your code chunk option.
 
-Exercise 4: Test the Function (25 points)
+# Exercise 4: Test the Function (25 points)
 Running examples is a good way of checking by-eye whether your function is working as expected. But, having a formal “yes or no” check is useful when you move on to other parts of your analysis.
 
 Write formal tests for your function. You should use at least three non-redundant uses of an expect_() function from the testthat package, and they should be contained in a test_that() function (or more than one). They should all pass.
