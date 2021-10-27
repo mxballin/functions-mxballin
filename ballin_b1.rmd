@@ -48,16 +48,19 @@ The output is consistent – for example, always gives a list. An example of inc
 Your function includes appropriate arguments. (Do you handle NA’s appropriately? Are you using the ellipsis properly? etc.)
 
 One of the chunks of code that I that repeated frequently for the tidying process in Milestone 2 of the mini data analysis was the unnesting, grouping, and factoring of a variable. It would be great to make this a function to not have to copy, paste, and modify the whole chunk over and over if a lot of variables have nested observations.
+
 ```{r}
 #A Function to Unnest and Factor a Variable in a Tibble
+#@references
 #Syntax suggested on StackOverflow by LyzandeR
-#link: https://stackoverflow.com/questions/48062213/dplyr-using-column-names-as-function-arguments
+#link: \url{https://stackoverflow.com/questions/48062213/dplyr-using-column-names-as-function-arguments}
 unnest_and_factor <- function(x,y) { #where y is the variable to be un-nested and x is the dataset
     y <- enquo(y)
-    x %>%
+   unnested_factored <- x %>%
     mutate(!!y:=strsplit(as.character(!!y), ","))%>% 
-    unnest(!!y) %>%
+    unnest(!!y, keep_empty = TRUE) %>%
     mutate(!!y:=as.factor(!!y))
+   return(unnested_factored)
 }
 ```
 
@@ -77,7 +80,26 @@ Demonstrate the usage of your function with a few examples. Use one or more new 
 
 Note: If you want to deliberately show an error, you can use error = TRUE in your code chunk option.
 
-Exercise 4: Test the Function (25 points)
+
+```{r}
+suppressPackageStartupMessages(library(datateachr)) # <- contains the data you picked!
+suppressPackageStartupMessages(library(tidyverse))
+```
+
+```{r}
+unnest_and_factor(steam_games, game_details)
+```
+
+```{r}
+unnest_and_factor(steam_games, genre)
+```
+
+I was also interested in testing if and how the function would work for other datasets and not just the one that I had successfully unnested before. I took a look at the other datasets in the `datateachr` package and saw that `apt_buildings` also had a nested column in the `parking_type` column.
+
+```{r}
+unnest_and_factor(apt_buildings, parking_type)
+```
+**Exercise 4: Test the Function (25 points)**
 Running examples is a good way of checking by-eye whether your function is working as expected. But, having a formal “yes or no” check is useful when you move on to other parts of your analysis.
 
 Write formal tests for your function. You should use at least three non-redundant uses of an expect_() function from the testthat package, and they should be contained in a test_that() function (or more than one). They should all pass.
@@ -92,54 +114,3 @@ Example of redundant inputs:
 
 Providing a different number (unless one of these numbers have some significance, like a limit point – just tell us if that’s the case)
 Powered by the Academic theme for Hugo.
-# Exercise 1: Make a Function (25 points)
-In this exercise, you’ll be making a function and fortifying it. The function need not be complicated. The function need not be “serious”, but shouldn’t be nonsense.
-
-Did you repeat any code for a data analysis in STAT 545A? If so, consider making a function for this action.
-
-Guidelines
-
-Your function should not rely on anything from your working environment.
-Your function should not rely on “magic numbers” – pre-selected numbers (or options) that appear inside the function that can’t be accessed by a user of the function.
-For example, maybe quantile(x, type = 1, ...) appears in your function. The choice of 1 is arbitrary – unless you’re making a function like quantile_type_1().
-Input should not take a rigid form. An example that’s too rigid is a data frame that’s expected to have special types of columns.
-The output is consistent – for example, always gives a list. An example of inconsistent output: sapply(1:3, seq_len) gives a list, and sapply(1:3, sqrt) gives an (atomic) vector.
-Your function includes appropriate arguments. (Do you handle NA’s appropriately? Are you using the ellipsis properly? etc.)
-
-
-# Exercise 2: Document your Function (20 points)
-In the same code chunk where you made your function, document the function using roxygen2 tags. Be sure to include:
-
-Title.
-Function description: In 1-2 brief sentences, describe what the function does.
-Document each argument with the @param tag, making sure to justify why you named the parameter as you did.
-(Justification for naming is not often needed, but we want to hear your reasoning.)
-What the function returns, using the @return tag.
-# Exercise 3: Include examples (15 points)
-Demonstrate the usage of your function with a few examples. Use one or more new code chunks, describing what you’re doing.
-
-Note: If you want to deliberately show an error, you can use error = TRUE in your code chunk option.
-
-# Exercise 4: Test the Function (25 points)
-
-```{r}
-suppressPackageStartupMessages(library(datateachr)) # <- contains the data you picked!
-suppressPackageStartupMessages(library(tidyverse))
-```
-
-```{r}
-unnest_and_factor(steam_games, game_details)
-```
-Running examples is a good way of checking by-eye whether your function is working as expected. But, having a formal “yes or no” check is useful when you move on to other parts of your analysis.
-
-Write formal tests for your function. You should use at least three non-redundant uses of an expect_() function from the testthat package, and they should be contained in a test_that() function (or more than one). They should all pass.
-
-Example of non-redundant inputs:
-
-Vector with no NA’s
-Vector that has NA’s
-Vector of a different type (if relevant)
-Vector of length 0, like numeric(0).
-Example of redundant inputs:
-
-Providing a different number (unless one of these numbers have some significance, like a limit point – just tell us if that’s the case)
