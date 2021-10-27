@@ -58,7 +58,7 @@ unnest_and_factor <- function(x,y) { #where y is the variable to be un-nested an
     y <- enquo(y)
    unnested_factored <- x %>%
     mutate(!!y:=strsplit(as.character(!!y), ","))%>% 
-    unnest(!!y, keep_empty = TRUE) %>%
+    unnest(!!y) %>%
     mutate(!!y:=as.factor(!!y))
    return(unnested_factored)
 }
@@ -88,10 +88,6 @@ suppressPackageStartupMessages(library(tidyverse))
 
 ```{r}
 unnest_and_factor(steam_games, game_details)
-```
-
-```{r}
-unnest_and_factor(steam_games, genre)
 ```
 
 I was also interested in testing if and how the function would work for other datasets and not just the one that I had successfully unnested before. I took a look at the other datasets in the `datateachr` package and saw that `apt_buildings` also had a nested column in the `parking_type` column.
