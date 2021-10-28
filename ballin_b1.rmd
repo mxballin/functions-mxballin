@@ -50,17 +50,35 @@ Your function includes appropriate arguments. (Do you handle NA’s appropriatel
 One of the chunks of code that I that repeated frequently for the tidying process in Milestone 2 of the mini data analysis was the unnesting, grouping, and factoring of a variable. It would be great to make this a function to not have to copy, paste, and modify the whole chunk over and over if a lot of variables have nested observations.
 
 ```{r}
-#A Function to Unnest and Factor a Variable in a Tibble
-#@references
-#Syntax suggested on StackOverflow by LyzandeR
-#link: \url{https://stackoverflow.com/questions/48062213/dplyr-using-column-names-as-function-arguments}
-unnest_and_factor <- function(x,y) { #where y is the variable to be un-nested and x is the dataset
-    y <- enquo(y)
-   unnested_factored <- x %>%
-    mutate(!!y:=strsplit(as.character(!!y), ","))%>% 
-    unnest(!!y) %>%
-    mutate(!!y:=as.factor(!!y))
-   return(unnested_factored)
+#' @title A Function to Unnest and Factor a Variable in a Tibble
+#'
+#' @description 'unnest_and_factor' takes a designated variable from a designated dataframe and helps to tidy
+#' the data by making sure that if there are multiple values included in a single observation with a standardized
+#' separator, these values are unnested--separated--and then factored for sorting, counting, and other grouping purposes.
+#'
+#' @param df The name of the stored tibble you want to work with - called 'df' for dataframe based on common stackoverflow usage
+#' @param var The target variable from that tibble - called 'var' as short for variable
+#' @param sep The separator string that the function should use to identify nested values; include quotations for proper usage - called 'sep' to mirror dplyr language
+#'
+#'@return The function will return the head of the tidied version of the tibble so that you can check whether the nested values were separated correctly before proceeding with use.
+#'
+#'@examples
+#' unnest_and_factor(steam_games, game_details,",")
+#' unnest_and_factor(apt_buildings, parking_type, ",")
+#' unnest_and_factor(apt_buildings, bike_parking, " and ")
+#'
+#' @references
+#' Syntax suggested on StackOverflow by LyzandeR
+#' link: \url{https://stackoverflow.com/questions/48062213/dplyr-using-column-names-as-function-arguments}
+#' More information can aso be found in the book 'Tidy Evaluation' by Lionel Henry and Hadley Wickham
+#' link: \url{https://tidyeval.tidyverse.org/dplyr.html}
+
+unnest_and_factor <- function(df,var,sep) { #where y is the variable to be un-nested and x is the dataset
+    var <- enquo(var)
+   unnested_factored <- df %>%
+    mutate(!!var:=strsplit(as.character(!!var), sep))%>% 
+    unnest(!!var) %>%
+    mutate(!!var:=as.factor(!!var))
 }
 ```
 
@@ -87,14 +105,24 @@ suppressPackageStartupMessages(library(tidyverse))
 ```
 
 ```{r}
-unnest_and_factor(steam_games, game_details)
+unnest_and_factor(steam_games, game_details,",")
 ```
 
 I was also interested in testing if and how the function would work for other datasets and not just the one that I had successfully unnested before. I took a look at the other datasets in the `datateachr` package and saw that `apt_buildings` also had a nested column in the `parking_type` column.
 
 ```{r}
-unnest_and_factor(apt_buildings, parking_type)
+unnest_and_factor(apt_buildings, parking_type, ",")
 ```
+```{r}
+unnest_and_factor(apt_buildings, parking_type, "+")
+```
+Another column with two pieces of information in `apt_buildings`is the `bike_parking` variable. I thought this might be a good variable to try using the function on because the separator is not a comma, but the word "and".
+
+```{r}
+unnest_and_factor(apt_buildings, bike_parking, " and ")
+
+```
+
 **Exercise 4: Test the Function (25 points)**
 Running examples is a good way of checking by-eye whether your function is working as expected. But, having a formal “yes or no” check is useful when you move on to other parts of your analysis.
 
@@ -109,4 +137,42 @@ Vector of length 0, like numeric(0).
 Example of redundant inputs:
 
 Providing a different number (unless one of these numbers have some significance, like a limit point – just tell us if that’s the case)
+
+```{r}
+#testing that using the function and doing the specific unnesting action produce the same results
+#using the `steam_games` dataset and the `languages` variable, which has NAs
+
+steam_games %>%
+    count(is.na(languages))
+
+unnested_languages <- steam_games %>%
+  mutate(languages=strsplit(as.character(languages), ",")) %>%
+  unnest(languages)%>%
+  mutate(languages=as.factor(languages))
+
+
+function_languages <- unnest_and_factor(steam_games,languages,",")
+
+
+testthat::test_that("namatch", testthat::expect_identical(unnested_languages, function_languages))
+```
+
+```{r}
+#testing that using the function and doing the specific unnesting action produce the same results
+#using the `apt_buildings` dataset and the `facilities_available` variable, which does not have NAs
+apt_buildings %>%
+count(is.na(facilities_available))
+
+unnested_facilities <- apt_buildings %>%
+  mutate(facilities_available=strsplit(as.character(facilities_available), "/")) %>%
+  unnest(facilities_available)%>%
+  mutate(facilities_available=as.factor(facilities_available))
+
+
+function_facilities <- unnest_and_factor(apt_buildings,facilities_available,"/")
+
+
+testthat::test_that("nonamatch", testthat::expect_identical(unnested_facilities, function_facilities))
+```
+
 Powered by the Academic theme for Hugo.
