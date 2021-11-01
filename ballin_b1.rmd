@@ -24,6 +24,11 @@ Code should adopt a consistent and easy-to-read style – ideally, the tidyverse
 You use proper English, spelling, and grammar, and write concisely. If there’s any uncertainty in determining a grade here, the UBC MDS writing rubric will be referred to.
 If there’s any further uncertainty in determining a grade for this tidy submission portion, the UBC MDS mechanics rubric will be referred to.
 
+```{r}
+suppressPackageStartupMessages(library(datateachr)) # <- contains the data you picked!
+suppressPackageStartupMessages(library(tidyverse))
+```
+
 **Exercise 1: Make a Function (25 points)**
 In this exercise, you’ll be making a function and fortifying it. The function need not be complicated. The function need not be “serious”, but shouldn’t be nonsense.
 
@@ -60,7 +65,7 @@ One of the chunks of code that I that repeated frequently for the tidying proces
 #' @param var The target variable from that tibble - called 'var' as short for variable
 #' @param sep The separator string that the function should use to identify nested values; include quotations for proper usage - called 'sep' to mirror dplyr language
 #'
-#'@return The function will return the head of the tidied version of the tibble so that you can check whether the nested values were separated correctly before proceeding with use.
+#'@return The function is silent, but does tidy the tibble so that it is unnested and can be called if stored
 #'
 #'@examples
 #' unnest_and_factor(steam_games, game_details,",")
@@ -98,30 +103,24 @@ Demonstrate the usage of your function with a few examples. Use one or more new 
 
 Note: If you want to deliberately show an error, you can use error = TRUE in your code chunk option.
 
-
 ```{r}
-suppressPackageStartupMessages(library(datateachr)) # <- contains the data you picked!
-suppressPackageStartupMessages(library(tidyverse))
-```
-
-```{r}
+#using function with `steam_games` dataset variable `game_details`
 unnest_and_factor(steam_games, game_details,",")
 ```
 
 I was also interested in testing if and how the function would work for other datasets and not just the one that I had successfully unnested before. I took a look at the other datasets in the `datateachr` package and saw that `apt_buildings` also had a nested column in the `parking_type` column.
 
 ```{r}
+#using function with `apt_buildings` dataset variable `parking_type`
 unnest_and_factor(apt_buildings, parking_type, ",")
-```
-```{r}
-unnest_and_factor(apt_buildings, parking_type, "+")
 ```
 Another column with two pieces of information in `apt_buildings`is the `bike_parking` variable. I thought this might be a good variable to try using the function on because the separator is not a comma, but the word "and".
 
 ```{r}
+#using function with `apt_buildings` dataset variable `bike_parking`
 unnest_and_factor(apt_buildings, bike_parking, " and ")
-
 ```
+
 
 **Exercise 4: Test the Function (25 points)**
 Running examples is a good way of checking by-eye whether your function is working as expected. But, having a formal “yes or no” check is useful when you move on to other parts of your analysis.
@@ -139,40 +138,55 @@ Example of redundant inputs:
 Providing a different number (unless one of these numbers have some significance, like a limit point – just tell us if that’s the case)
 
 ```{r}
-#testing that using the function and doing the specific unnesting action produce the same results
+#testing that using the function and doing the specific unnesting action produce the same results and that the unnested column is factored
 #using the `steam_games` dataset and the `languages` variable, which has NAs
 
+#count NAS
 steam_games %>%
     count(is.na(languages))
 
+#unnesting manually
 unnested_languages <- steam_games %>%
   mutate(languages=strsplit(as.character(languages), ",")) %>%
   unnest(languages)%>%
   mutate(languages=as.factor(languages))
 
-
+#unnesting using the custom function
 function_languages <- unnest_and_factor(steam_games,languages,",")
 
+head(function_languages)
 
-testthat::test_that("namatch", testthat::expect_identical(unnested_languages, function_languages))
+#testing that the two unnested tibbles match
+testthat::test_that("factorandmatched", {
+testthat::expect_s3_class(function_languages$languages, "factor") #testing that the variable `languages` has the s3 class "factor"
+testthat::expect_identical(unnested_languages, function_languages)}) #testing that the output is the same as if the unnesting had been done manually
 ```
 
 ```{r}
-#testing that using the function and doing the specific unnesting action produce the same results
-#using the `apt_buildings` dataset and the `facilities_available` variable, which does not have NAs
+#testing that the unnesting is occurring by asking r to check whether the new tibble has a higher number of rows compared to the original tibble but has the same number of columns with the same names.
+#using the `apt_buildings` dataset and the `facilities_available` variable, which 
+
+#checking NA count
 apt_buildings %>%
 count(is.na(facilities_available))
 
+#unnesting manually
 unnested_facilities <- apt_buildings %>%
   mutate(facilities_available=strsplit(as.character(facilities_available), "/")) %>%
   unnest(facilities_available)%>%
   mutate(facilities_available=as.factor(facilities_available))
 
-
+#unnesting using the custom function
 function_facilities <- unnest_and_factor(apt_buildings,facilities_available,"/")
 
+#testing that the two unnested tibbles match
+testthat::test_that("rowcolcount", {
+  testthat::expect_gt(nrow(function_facilities), nrow(apt_buildings))
+  testthat::expect_equal(ncol(function_facilities), ncol(apt_buildings))
+  testthat::expect_equal(colnames(function_facilities),colnames(apt_buildings))
+                    }) #testing that the number of rows has increased from the original tibble but that the number of columns has stayed the same
 
-testthat::test_that("nonamatch", testthat::expect_identical(unnested_facilities, function_facilities))
 ```
+
 
 Powered by the Academic theme for Hugo.
