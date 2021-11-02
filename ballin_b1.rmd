@@ -54,6 +54,7 @@ Your function includes appropriate arguments. (Do you handle NA’s appropriatel
 
 One of the chunks of code that I that repeated frequently for the tidying process in Milestone 2 of the mini data analysis was the unnesting, grouping, and factoring of a variable. It would be great to make this a function to not have to copy, paste, and modify the whole chunk over and over if a lot of variables have nested observations.
 
+
 ```{r}
 #' @title A Function to Unnest and Factor a Variable in a Tibble
 #'
@@ -65,7 +66,7 @@ One of the chunks of code that I that repeated frequently for the tidying proces
 #' @param var The target variable from that tibble - called 'var' as short for variable
 #' @param sep The separator string that the function should use to identify nested values; include quotations for proper usage - called 'sep' to mirror dplyr language
 #'
-#'@return The function is silent, but does tidy the tibble so that it is unnested and can be called if stored
+#'@return The function returns the unnested tibble
 #'
 #'@examples
 #' unnest_and_factor(steam_games, game_details,",")
@@ -79,11 +80,14 @@ One of the chunks of code that I that repeated frequently for the tidying proces
 #' link: \url{https://tidyeval.tidyverse.org/dplyr.html}
 
 unnest_and_factor <- function(df,var,sep) { #where y is the variable to be un-nested and x is the dataset
-    var <- enquo(var)
+    check <- dplyr::summarise(df, is.character({{var}}))
+  if (!check[[1]])
+    warning("The variable you have selected to unnest is not a character. It will be converted to a character as part of the evaluation of this function.")
    unnested_factored <- df %>%
-    mutate(!!var:=strsplit(as.character(!!var), sep))%>% 
-    unnest(!!var) %>%
-    mutate(!!var:=as.factor(!!var))
+    mutate({{var}}:=strsplit(as.character({{var}}), sep))%>% 
+    unnest({{var}}) %>%
+    mutate({{var}}:=as.factor({{var}}))
+   return(unnested_factored)
 }
 ```
 
@@ -121,7 +125,6 @@ Another column with two pieces of information in `apt_buildings`is the `bike_par
 unnest_and_factor(apt_buildings, bike_parking, " and ")
 ```
 
-
 **Exercise 4: Test the Function (25 points)**
 Running examples is a good way of checking by-eye whether your function is working as expected. But, having a formal “yes or no” check is useful when you move on to other parts of your analysis.
 
@@ -136,6 +139,8 @@ Vector of length 0, like numeric(0).
 Example of redundant inputs:
 
 Providing a different number (unless one of these numbers have some significance, like a limit point – just tell us if that’s the case)
+
+I first decided to test to make sure that the function would produce the same tibble as if I had done the unnesting manually. To do this, I created a test that would check that the class for the languages had been converted to being "factor" and that the overall tibble was the same as the manually performed version.
 
 ```{r}
 #testing that using the function and doing the specific unnesting action produce the same results and that the unnested column is factored
@@ -162,6 +167,8 @@ testthat::expect_s3_class(function_languages$languages, "factor") #testing that 
 testthat::expect_identical(unnested_languages, function_languages)}) #testing that the output is the same as if the unnesting had been done manually
 ```
 
+
+I then created a test to make sure that the unnesting was occurring and that it wasn't somehow creating new or differently named columns. To do this, I tested to make sure that the number of rows in the new tibble was greater than the original, but that the number of columns, the names of the columns
 ```{r}
 #testing that the unnesting is occurring by asking r to check whether the new tibble has a higher number of rows compared to the original tibble but has the same number of columns with the same names.
 #using the `apt_buildings` dataset and the `facilities_available` variable, which 
@@ -188,5 +195,11 @@ testthat::test_that("rowcolcount", {
 
 ```
 
+I also wanted to test to make sure that the warning was working by attempting to unnest a column that was not classed as "character."
+```{r}
+
+testthat::test_that("warning", testthat::expect_warning(unnest_and_factor(steam_games, id, ",")))
+
+```
 
 Powered by the Academic theme for Hugo.
