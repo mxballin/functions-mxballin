@@ -1,56 +1,27 @@
+---
+title: "STAT 545 Assignment B-1"
+output: github_document
+---
 STAT 545 @ UBC
 Assignment B-1: Making a function
-Jan 1, 0001
 Total Points: 100
 
 This assignment covers making a function in R, documenting it, and testing it.
 
-Setup
-Go to canvas to get your invitation to create a GitHub repository for this project. You can find this in the description of Assignment B-1. Name your repo as you wish – keeping in mind that you’ll be using this repo for Assignment B-2, where you’ll be bundling your work from Assignment B-1 into an R package.
-
-Make a new Rmd file containing all of your code. Be sure to use some dialogue between code chunks.
-
-Tidy Submission (15 points)
-Follow these steps to submit your work. Be sure to familiarize yourself with the rubric for a tidy submission below, before doing these steps.
-
-Make a README file for your repository. It should be a brief document letting a visitor know what’s in this repository (at a high level) and some key things they should know about how to use the files in the repository.
-Tag a release in your GitHub repository corresponding to your submission before the deadline.
-Grab the URL corresponding to your tagged release, and submit that to canvas.
-Rubric:
-
-The above steps were followed.
-Your work must be reproducible from beginning to end, error-free.
-Code should adopt a consistent and easy-to-read style – ideally, the tidyverse style, although we’re certainly not looking for strict adherence.
-You use proper English, spelling, and grammar, and write concisely. If there’s any uncertainty in determining a grade here, the UBC MDS writing rubric will be referred to.
-If there’s any further uncertainty in determining a grade for this tidy submission portion, the UBC MDS mechanics rubric will be referred to.
+# Loading packages
 
 ```{r}
 suppressPackageStartupMessages(library(datateachr)) # <- contains the data you picked!
 suppressPackageStartupMessages(library(tidyverse))
 ```
 
-**Exercise 1: Make a Function (25 points)**
-In this exercise, you’ll be making a function and fortifying it. The function need not be complicated. The function need not be “serious”, but shouldn’t be nonsense.
+# Assignment Exercises 
 
-Function Ideas
+## **Exercise 1: Make a Function (25 points)**
+*In this exercise, you’ll be making a function and fortifying it. The function need not be complicated. The function need not be “serious”, but shouldn’t be nonsense.*
 
-Did you repeat any code for a data analysis in STAT 545A? If so, consider making a function for this action.
-Consider bundling a specific group_by() %>% summarise() workflow.
-Write a wrapper around an existing function.
-For example, perhaps accepting a narrower range of inputs (like not allowing logical vectors), or providing a different output.
-A specific example: my rqdist() function is a wrapper around quantreg::rq(), narrowing its functionality.
-It’s usually better to narrow a function’s focus than to broaden, so that a function doesn’t end up doing too much.
-Make a function extracting parts of an "lm" object that you can’t easily access (broom aside), or measuring the “difference” between a linear and quadratic fit.
-Make a special plot that you’d want to repeat when exploring your data.
-…
-Guidelines
-
-Your function should not rely on anything from your working environment.
-Your function should not rely on “magic numbers” – pre-selected numbers (or options) that appear inside the function that can’t be accessed by a user of the function.
-For example, maybe quantile(x, type = 1, ...) appears in your function. The choice of 1 is arbitrary – unless you’re making a function like quantile_type_1().
-Input should not take a rigid form. An example that’s too rigid is a data frame that’s expected to have special types of columns.
-The output is consistent – for example, always gives a list. An example of inconsistent output: sapply(1:3, seq_len) gives a list, and sapply(1:3, sqrt) gives an (atomic) vector.
-Your function includes appropriate arguments. (Do you handle NA’s appropriately? Are you using the ellipsis properly? etc.)
+## **Exercise 2: Document your Function (20 points)**
+*In the same code chunk where you made your function, document the function using roxygen2 tags.*
 
 One of the chunks of code that I that repeated frequently for the tidying process in Milestone 2 of the mini data analysis was the unnesting, grouping, and factoring of a variable. It would be great to make this a function to not have to copy, paste, and modify the whole chunk over and over if a lot of variables have nested observations.
 
@@ -66,7 +37,7 @@ One of the chunks of code that I that repeated frequently for the tidying proces
 #' @param var The target variable from that tibble - called 'var' as short for variable
 #' @param sep The separator string that the function should use to identify nested values; include quotations for proper usage - called 'sep' to mirror dplyr language
 #'
-#'@return The function returns the unnested tibble
+#'@return The function returns the unnested tibble.
 #'
 #'@examples
 #' unnest_and_factor(steam_games, game_details,",")
@@ -79,66 +50,83 @@ One of the chunks of code that I that repeated frequently for the tidying proces
 #' More information can aso be found in the book 'Tidy Evaluation' by Lionel Henry and Hadley Wickham
 #' link: \url{https://tidyeval.tidyverse.org/dplyr.html}
 
-unnest_and_factor <- function(df,var,sep) { #where y is the variable to be un-nested and x is the dataset
-    check <- dplyr::summarise(df, is.character({{var}}))
+unnest_and_factor <- function(df,var,sep) { #where df is the dataset, var is the variable to be unnested and sep is the separator used in the observations of the nested variable
+    check <- dplyr::summarise(df, is.character({{var}})) #checking if the class of the variable is a character
   if (!check[[1]])
-    warning("The variable you have selected to unnest is not a character. It will be converted to a character as part of the evaluation of this function.")
+    warning("The variable you have selected to unnest is not a character. It will be converted to a character as part of the evaluation of this function.") #warning that the function converts the existing non-character variable, if applicable, to a character in order to work
    unnested_factored <- df %>%
-    mutate({{var}}:=strsplit(as.character({{var}}), sep))%>% 
-    unnest({{var}}) %>%
-    mutate({{var}}:=as.factor({{var}}))
-   return(unnested_factored)
+    mutate({{var}}:=strsplit(as.character({{var}}), sep))%>%  #separating the observations on the given separator 
+    unnest({{var}}) %>% #unnesting the separated observations
+    mutate({{var}}:=as.factor({{var}})) #factoring the observations for grouping capabilities
+   return(unnested_factored) #returning the unnested and factored tibble
 }
 ```
 
 
-**Exercise 2: Document your Function (20 points)**
-In the same code chunk where you made your function, document the function using roxygen2 tags. Be sure to include:
+## **Exercise 3: Include examples (15 points)**
+*Demonstrate the usage of your function with a few examples. Use one or more new code chunks, describing what you’re doing.*
 
-Title.
-Function description: In 1-2 brief sentences, describe what the function does.
-Document each argument with the @param tag, making sure to justify why you named the parameter as you did.
-(Justification for naming is not often needed, but we want to hear your reasoning.)
-What the function returns, using the @return tag.
+### Example 1
 
-
-**Exercise 3: Include examples (15 points)**
-Demonstrate the usage of your function with a few examples. Use one or more new code chunks, describing what you’re doing.
-
-Note: If you want to deliberately show an error, you can use error = TRUE in your code chunk option.
+Here is an unnesting that I had tried in my STAT545A assignment that places each detail about a game is its own observation. To show what has changed, after unnesting the variable using the function and getting the return of the entire tibble, I asked r to print the head of the original and tidied tibble and selected just the unnested variable and the id variable.
 
 ```{r}
 #using function with `steam_games` dataset variable `game_details`
+
 unnest_and_factor(steam_games, game_details,",")
+
+details<-unnest_and_factor(steam_games, game_details,",") #storing the function evaluating `game_details`
+
+head(steam_games)%>%
+  select(id, game_details) #the head of the original tibble's `id` and `game_details` columns
+
+head(details)%>%
+  select(id, game_details) #the head of the unnested and factored tibble's `id` and `game_details` columns
 ```
 
-I was also interested in testing if and how the function would work for other datasets and not just the one that I had successfully unnested before. I took a look at the other datasets in the `datateachr` package and saw that `apt_buildings` also had a nested column in the `parking_type` column.
+### Example 2
+
+I was also interested in testing if and how the function would work for other datasets and not just the one that I had successfully unnested before. I took a look at the other datasets in the `datateachr` package and saw that `apt_buildings` also had a nested column in the `parking_type` column, so I tried the function with that variable.  To show what has changed, after unnesting the variable using the function and getting the return of the entire tibble, I asked r to print the head of the original and tidied tibble and selected just the unnested variable and the id variable.
 
 ```{r}
 #using function with `apt_buildings` dataset variable `parking_type`
 unnest_and_factor(apt_buildings, parking_type, ",")
+
+parking<-unnest_and_factor(apt_buildings, parking_type, ",") #storing the function evaluating `parking_type`
+
+
+head(apt_buildings)%>%
+  select(id, parking_type) #the head of the original tibble's `id` and `parking_type` columns
+
+head(parking)%>%
+  select(id, parking_type) #the head of the unnested and factored tibble's `id` and `parking_type` columns
 ```
-Another column with two pieces of information in `apt_buildings`is the `bike_parking` variable. I thought this might be a good variable to try using the function on because the separator is not a comma, but the word "and".
+
+
+### Example 3
+
+Another column with two pieces of information in `apt_buildings`is the `bike_parking` variable. I thought this might be a good variable to try using the function on because the separator is not a comma, but the word "and." This shows the function can be used with any separator the user sets, not just a single character. To show what has changed, after unnesting the variable using the function and getting the return of the entire tibble, I asked r to print the head of the original and tidied tibble and selected just the unnested variable and the id variable.
 
 ```{r}
 #using function with `apt_buildings` dataset variable `bike_parking`
 unnest_and_factor(apt_buildings, bike_parking, " and ")
+
+bike<-unnest_and_factor(apt_buildings, bike_parking, " and ") #storing the function evaluating `bike_parking`
+
+head(apt_buildings)%>%
+  select(id, bike_parking) #the head of the original tibble's `id` and `bike_parking` columns
+
+head(bike)%>%
+  select(id, bike_parking) #the head of the unnested and factored tibble's `id` and `bike_parking` columns
 ```
 
-**Exercise 4: Test the Function (25 points)**
-Running examples is a good way of checking by-eye whether your function is working as expected. But, having a formal “yes or no” check is useful when you move on to other parts of your analysis.
+## **Exercise 4: Test the Function (25 points)**
 
-Write formal tests for your function. You should use at least three non-redundant uses of an expect_() function from the testthat package, and they should be contained in a test_that() function (or more than one). They should all pass.
+*Running examples is a good way of checking by-eye whether your function is working as expected. But, having a formal “yes or no” check is useful when you move on to other parts of your analysis.*
 
-Example of non-redundant inputs:
+*Write formal tests for your function. You should use at least three non-redundant uses of an expect_() function from the testthat package, and they should be contained in a test_that() function (or more than one). They should all pass.*
 
-Vector with no NA’s
-Vector that has NA’s
-Vector of a different type (if relevant)
-Vector of length 0, like numeric(0).
-Example of redundant inputs:
-
-Providing a different number (unless one of these numbers have some significance, like a limit point – just tell us if that’s the case)
+### Test 1
 
 I first decided to test to make sure that the function would produce the same tibble as if I had done the unnesting manually. To do this, I created a test that would check that the class for the languages had been converted to being "factor" and that the overall tibble was the same as the manually performed version.
 
@@ -159,8 +147,6 @@ unnested_languages <- steam_games %>%
 #unnesting using the custom function
 function_languages <- unnest_and_factor(steam_games,languages,",")
 
-head(function_languages)
-
 #testing that the two unnested tibbles match
 testthat::test_that("factorandmatched", {
 testthat::expect_s3_class(function_languages$languages, "factor") #testing that the variable `languages` has the s3 class "factor"
@@ -168,7 +154,9 @@ testthat::expect_identical(unnested_languages, function_languages)}) #testing th
 ```
 
 
-I then created a test to make sure that the unnesting was occurring and that it wasn't somehow creating new or differently named columns. To do this, I tested to make sure that the number of rows in the new tibble was greater than the original, but that the number of columns, the names of the columns
+### Test 2
+
+I then created a test to make sure that the unnesting was occurring and that it wasn't somehow creating new or differently named columns. To do this, I tested to make sure that the number of rows in the new tibble was greater than the original and that the number of columns and the names of the columns had remained the same.
 ```{r}
 #testing that the unnesting is occurring by asking r to check whether the new tibble has a higher number of rows compared to the original tibble but has the same number of columns with the same names.
 #using the `apt_buildings` dataset and the `facilities_available` variable, which 
@@ -186,20 +174,23 @@ unnested_facilities <- apt_buildings %>%
 #unnesting using the custom function
 function_facilities <- unnest_and_factor(apt_buildings,facilities_available,"/")
 
-#testing that the two unnested tibbles match
+#testing that the number of rows has increased from the original tibble but that the number and names of columns has stayed the same
+
 testthat::test_that("rowcolcount", {
-  testthat::expect_gt(nrow(function_facilities), nrow(apt_buildings))
-  testthat::expect_equal(ncol(function_facilities), ncol(apt_buildings))
-  testthat::expect_equal(colnames(function_facilities),colnames(apt_buildings))
-                    }) #testing that the number of rows has increased from the original tibble but that the number of columns has stayed the same
+  testthat::expect_gt(nrow(function_facilities), nrow(apt_buildings)) #inequality of row count
+  testthat::expect_equal(ncol(function_facilities), ncol(apt_buildings)) #matching column count
+  testthat::expect_equal(colnames(function_facilities),colnames(apt_buildings)) #matching column names
+                    })
 
 ```
 
-I also wanted to test to make sure that the warning was working by attempting to unnest a column that was not classed as "character."
+
+### Test 3
+
+Lastly, I wanted to test to make sure that the warning was working by attempting to unnest a column that was not classed as "character." To do so, I tested the `steam_games` dataset variable `id`, which is classed as a double.
 ```{r}
-
+#testing that evaluating the `id` variable of `steam_games` would generate a warning.
 testthat::test_that("warning", testthat::expect_warning(unnest_and_factor(steam_games, id, ",")))
-
 ```
 
 Powered by the Academic theme for Hugo.
